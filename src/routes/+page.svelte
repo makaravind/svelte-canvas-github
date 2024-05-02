@@ -1,11 +1,15 @@
 <!--<svelte:head>-->
 <!--	<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/500/fabric.min.js"></script>-->
 <!--</svelte:head>-->
+<svelte:window on:keydown={saveImages}/>
 
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { fabric } from 'fabric';
 	import { fabric as fType } from 'fabric';
+	import pkg from 'file-saver';
+	import { exportCardsAsImage, showImageInSidebar } from '$lib/utils/export';
+	const {saveAs} = pkg;
 
 	interface NameCard {
 		name: string;
@@ -21,21 +25,25 @@
 	}
 
 	let canvas: fType.Canvas | undefined;
+	let canvasCards: fType.Group[]  = []
 	let memberDetails : NameCard[]
 	let page: number = 1;
 	let searchVal = '';
 
 
 	async function getNameCardRect(card: NameCard, cardCount: number) {
-		const avatarImg = await new Promise<fType.Image>((resolve, reject) => {
+		const avatarImg = await new Promise<fType.Image>((resolve) => {
 			fabric.Image.fromURL(card.avatar, (img) => {
 				img.scaleToWidth(100);
 				img.scaleToHeight(100);
 				img.top = 10
 				img.left = 50
 				resolve(img);
-			});
+			}, { crossOrigin: 'anonymous' });
 		});
+
+		avatarImg.set({ crossOrigin: 'anonymous' });
+
 
 		const cardWidth = 200;
 
@@ -99,6 +107,15 @@
 		return group;
 	}
 
+	function saveImages(event: KeyboardEvent) {
+		if (event.ctrlKey && event.key === 's') {
+			event.preventDefault();
+			const image = exportCardsAsImage(canvas);
+			if (image !== null) {
+				showImageInSidebar(image);
+			}
+		}
+	}
 	async function handleKeydown(event: KeyboardEvent) {
 		event.preventDefault();
 		await tick();
@@ -122,7 +139,6 @@
 
 	function makeCanvasInteractive() {
 		const onChange = (options: fType.IEvent) => {
-			console.log("aravind:", 'called')
 			options.target?.setCoords();
 			canvas?.forEachObject(function(obj) {
 				if (obj === options.target) return;
@@ -133,24 +149,28 @@
 		canvas?.on('object:moving', onChange)
 	}
 
-	onMount(() => {
-		canvas = new fabric.Canvas('c');
+	onMount(async () => {
+		canvas = new fabric.Canvas('c', {
+			enableRetinaScaling: true,
+		});
 		canvas.setHeight(0)
-		init().then(() => console.log("aravind:", 'init'));
+		await initContent()
 	});
 
 	async function updateCanvas(memberDetails: NameCard[]) {
 		canvas?.clear();
+		canvasCards = [];
 		for (let i = 0; i < memberDetails.length; i++) {
 			const member = memberDetails[i]
 			const group = await getNameCardRect(member, i);
 			updateCanvasHeight(i + 1)
 			canvas?.add(group);
+			canvasCards.push(group)
 		}
 		makeCanvasInteractive()
 	}
 
-	async function init() {
+	async function initContent() {
 		memberDetails = await fetchMembers(1)
 		await updateCanvas(memberDetails);
 	}
@@ -270,6 +290,42 @@
         outline: none; /* Remove default focus outline */
         box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Add box shadow on focus/active */
     }
+
+    #sidebar-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 300px;
+        background: #23acea;
+        color: #fff;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        right: 0;
+    }
+
+    #sidebar {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+    }
+    .shortcut {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 14px;
+        color: #a9a9a9;
+        margin: 10px;
+        padding: 0 10px;
+        background-color: #242423;
+        border-radius: 5px;
+    }
 </style>
 
 
@@ -279,7 +335,7 @@
 </div>
 
 <div class="search-container">
-	<input class="search" bind:value={searchVal} placeholder="search github ID" on:keyup={handleKeydown} />
+	<input class="search" bind:value={searchVal} placeholder="Search for Github ID" on:keyup={handleKeydown} />
 	<button class="pagination-btn" on:click={handlePrevPage}>previous</button>
 	<p class="page-info">
 		Page {page}
@@ -289,4 +345,14 @@
 
 <div class="container">
 	<canvas id="c" width="500" height="500" ></canvas>
+</div>
+
+<div id="sidebar-container">
+	<div class="shortcut">
+		<strong>export : </strong>
+		<p>alt+s</p>
+	</div>
+	<h3>Images</h3>
+	<div id="sidebar">
+	</div>
 </div>
