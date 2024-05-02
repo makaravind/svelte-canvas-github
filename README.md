@@ -14,3 +14,12 @@ npm run dev
 - ctrl+s hotkey to save the image
 - double click on the name card to open member profile
 - download the saved image of Github members
+
+
+## Screenshots
+
+![one.png](demo/one.png)
+
+![three.png](demo/three.png)
+
+![two.png](demo/two.png)

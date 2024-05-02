@@ -196,6 +196,7 @@
 	async function handleNextPage() {
 		page++
 		memberDetails = await fetchMembers(page)
+		searchVal = ''
 		await updateCanvas(memberDetails);
 	}
 
@@ -205,6 +206,7 @@
 		}
 		page--;
 		memberDetails = await fetchMembers(page)
+		searchVal = ''
 		await updateCanvas(memberDetails);
 	}
 
