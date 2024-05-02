@@ -28,49 +28,57 @@
 	async function getNameCardRect(card: NameCard, cardCount: number) {
 		const avatarImg = await new Promise<fType.Image>((resolve, reject) => {
 			fabric.Image.fromURL(card.avatar, (img) => {
-				img.scaleToWidth(60);
-				img.scaleToHeight(60);
+				img.scaleToWidth(100);
+				img.scaleToHeight(100);
+				img.top = 10
+				img.left = 50
 				resolve(img);
 			});
 		});
 
+		const cardWidth = 200;
+
 		let nameText = new fabric.Text(card.name, {
-			fontSize: 20,
+			fontSize: 24,
 			fontFamily: 'Arial',
-			left: 70,
-			top: 5
+			textAlign: 'center',
+			left: 50,
+			top: 110
+		});
+
+		nameText.set({
+			left: (cardWidth - nameText.width!) / 2
 		});
 
 		let usernameText = new fabric.Text(card.username, {
-			fontSize: 16,
-			fontFamily: 'Arial',
-			left: 70,
-			top: 30,
-			fill: 'gray'
-		});
-
-		let profileText = new fabric.Text(card.profile, {
 			fontSize: 14,
 			fontFamily: 'Arial',
-			left: 70,
-			top: 50,
-			width: 180,
-			splitByGrapheme: true
+			textAlign: 'center',
+			fill: '#606060',
+			left: 50,
+			top: 140
+		});
+
+		usernameText.set({
+			left: (cardWidth - usernameText.width!) / 2
 		});
 
 		let rect = new fabric.Rect({
 			left: 0,
 			top: 0,
 			fill: '#fff',
-			stroke: '#000',
+			stroke: '#007bff',
 			strokeWidth: 2,
-			width: 300,
-			height: 100
+			width: cardWidth,
+			height: 165,
+			rx: 10,
+			ry: 10
 		});
 
-		let group = new fabric.Group([rect, avatarImg, nameText, usernameText, profileText], {
+		let group = new fabric.Group([rect, avatarImg, nameText, usernameText], {
 			left: 20, // Maintain a fixed horizontal margin
-			top: 120 * cardCount // Increase vertical position with each card
+			top: 220 * cardCount, // Increase vertical position with each card
+			centeredScaling: true // Center the group while scaling
 		});
 
 		group.on('mousedblclick', () => {
@@ -87,7 +95,7 @@
 			canvas?.requestRenderAll();
 		});
 
-		return group
+		return group;
 	}
 
 	async function handleKeydown(event: KeyboardEvent) {
@@ -160,11 +168,32 @@
 </script>
 
 <style>
+    /* Width */
+    ::-webkit-scrollbar {
+        width: 8px; /* Width of the scroll bar */
+    }
+
+    /* Track */
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1; /* Color of the track */
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+        background: #007bff; /* Color of the handle */
+        border-radius: 4px; /* Roundness of the handle */
+    }
+
+    /* Handle on hover */
+    ::-webkit-scrollbar-thumb:hover {
+        background: #555; /* Color of the handle on hover */
+    }
+
 	.container {
 			width: 500px;
 			height: 500px;
 			overflow-y: auto;
-			scrollbar-width: none;
+			overflow-x: hidden;
 	}
 
 	.search {
@@ -173,6 +202,7 @@
       border-radius: 5px; /* Add rounded corners */
       font-size: 16px; /* Set font size */
 			margin-bottom: 10px;
+			width: 500px;
 	}
 
   .search:focus {
@@ -180,10 +210,31 @@
       outline: none; /* Remove default focus outline */
       box-shadow: 0 0 5px #007bff; /* Add a subtle box shadow when focused */
   }
+
+	.heading {
+      font-size: 36px; /* Set font size */
+      font-weight: bold; /* Set font weight */
+      color: #333; /* Set text color */
+      margin-bottom: 20px; /* Add some space at the bottom */
+	}
+
+	.page-info {
+			font-weight: 400;
+	}
 </style>
 
 
-<input class="search" bind:value={searchVal} placeholder="search github id" on:keyup={handleKeydown} />
+
+<div>
+	<p  class="heading">Showing Mozilla Org members</p>
+	<p>
+		Page <span class="page-info">1</span>
+	</p>
+</div>
+
+<input class="search" bind:value={searchVal} placeholder="search github ID" on:keyup={handleKeydown} />
+
+
 
 <div class="container">
 	<canvas id="c" width="500" height="500" ></canvas>
