@@ -3,7 +3,7 @@
 <!--</svelte:head>-->
 
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { fabric } from 'fabric';
 	import { fabric as fType } from 'fabric';
 
@@ -22,6 +22,8 @@
 
 	let canvas: fType.Canvas | undefined;
 	let memberDetails : NameCard[]
+	let searchVal = '';
+
 
 	async function getNameCardRect(card: NameCard, cardCount: number) {
 		const avatarImg = await new Promise<fType.Image>((resolve, reject) => {
@@ -71,7 +73,37 @@
 			top: 120 * cardCount // Increase vertical position with each card
 		});
 
+		group.on('mousedblclick', () => {
+			window.open(card.profile, '_blank');
+		});
+
+		group.on('mouseover', () => {
+			rect.set({ stroke: 'blue' });
+			canvas?.requestRenderAll();
+		});
+
+		group.on('mouseout', () => {
+			rect.set({ stroke: '#000' });
+			canvas?.requestRenderAll();
+		});
+
 		return group
+	}
+
+	async function handleKeydown(event: KeyboardEvent) {
+		event.preventDefault();
+		await tick();
+
+		if(!searchVal || !searchVal.trim()) {
+			await updateCanvas(memberDetails)
+			return;
+		}
+		const viewMembers = memberDetails.filter(m => m.name.startsWith(searchVal))
+		if(!viewMembers.length) {
+			await updateCanvas(memberDetails)
+			return;
+		}
+		await updateCanvas(viewMembers)
 	}
 
 	function updateCanvasHeight(cardCount: number) {
@@ -84,6 +116,16 @@
 		canvas.setHeight(0)
 		init().then(() => console.log("aravind:", 'init'));
 	});
+
+	async function updateCanvas(memberDetails: NameCard[]) {
+		canvas?.clear();
+		for (let i = 0; i < memberDetails.length; i++) {
+			const member = memberDetails[i]
+			const group = await getNameCardRect(member, i);
+			updateCanvasHeight(i + 1)
+			canvas?.add(group);
+		}
+	}
 
 	async function init() {
 		const res = await fetch('https://api.github.com/orgs/mozilla/members?page=1')
@@ -99,12 +141,7 @@
 			avatar: r.avatar_url
 		}))
 
-		for (let i = 0; i < memberDetails.length; i++) {
-			const member = memberDetails[i]
-			const group = await getNameCardRect(member, i);
-			updateCanvasHeight(i)
-			canvas?.add(group);
-		}
+		await updateCanvas(memberDetails);
 	}
 </script>
 
@@ -116,6 +153,9 @@
 			scrollbar-width: none;
 	}
 </style>
+
+
+<input bind:value={searchVal} placeholder="search github id" on:keyup={handleKeydown} />
 
 <div class="container">
 	<canvas id="c" width="500" height="500" ></canvas>
