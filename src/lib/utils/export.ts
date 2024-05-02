@@ -1,4 +1,5 @@
 import { fabric } from 'fabric';
+import { saveAs } from 'file-saver';
 
 // define image data interface
 interface ImageData {
@@ -37,7 +38,15 @@ export function showImageInSidebar(image: ImageData): void {
 		img.src = image.dataURL;
 		img.id = image.id;
 		img.style.width = '200px';
-		img.style.height = '300px';
+		img.style.height = '100vh';
 		sidebar.appendChild(img);
 	}
+}
+
+export function downloadImageFile(canvas: fabric.Canvas) {
+	canvas.toCanvasElement().toBlob(function (blob) {
+		if (blob) {
+			saveAs(blob, 'pretty image.png');
+		}
+	});
 }

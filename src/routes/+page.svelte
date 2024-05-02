@@ -8,7 +8,7 @@
 	import { fabric } from 'fabric';
 	import { fabric as fType } from 'fabric';
 	import pkg from 'file-saver';
-	import { exportCardsAsImage, showImageInSidebar } from '$lib/utils/export';
+	import { downloadImageFile, exportCardsAsImage, showImageInSidebar } from '$lib/utils/export';
 	const {saveAs} = pkg;
 
 	interface NameCard {
@@ -207,6 +207,10 @@
 		memberDetails = await fetchMembers(page)
 		await updateCanvas(memberDetails);
 	}
+
+	function handleImageDownload() {
+		downloadImageFile(canvas!)
+	}
 </script>
 
 <style>
@@ -312,6 +316,7 @@
         align-items: center;
         width: 100%;
         height: 100%;
+				overflow-y: auto;
     }
     .shortcut {
         display: flex;
@@ -353,6 +358,8 @@
 		<p>alt+s</p>
 	</div>
 	<h3>Images</h3>
-	<div id="sidebar">
+	<div class="shortcut" on:click={handleImageDownload}>
+		<strong>download</strong>
 	</div>
+	<div id="sidebar"></div>
 </div>
