@@ -22,6 +22,7 @@
 
 	let canvas: fType.Canvas | undefined;
 	let memberDetails : NameCard[]
+	let page: number = 1;
 	let searchVal = '';
 
 
@@ -150,10 +151,16 @@
 	}
 
 	async function init() {
-		const res = await fetch('https://api.github.com/orgs/mozilla/members?page=1')
+		memberDetails = await fetchMembers(1)
+		await updateCanvas(memberDetails);
+	}
+
+	async function fetchMembers(page: number): Promise<NameCard[]> {
+		console.log("aravind:", "Fetching members for page", page)
+		const res = await fetch(`https://api.github.com/orgs/mozilla/members?page=${page}`)
 		if(!res.ok) {
 			memberDetails = []
-			return;
+			return [];
 		}
 
 		memberDetails = (await res.json() as unknown as GithubApiMemberResponse[]).map(r => ({
@@ -163,6 +170,21 @@
 			avatar: r.avatar_url
 		}))
 
+		return memberDetails;
+	}
+
+	async function handleNextPage() {
+		page++
+		memberDetails = await fetchMembers(page)
+		await updateCanvas(memberDetails);
+	}
+
+	async function handlePrevPage() {
+		if(page === 1) {
+			return;
+		}
+		page--;
+		memberDetails = await fetchMembers(page)
 		await updateCanvas(memberDetails);
 	}
 </script>
@@ -220,21 +242,50 @@
 
 	.page-info {
 			font-weight: 400;
+			color: #a9a9a9;
 	}
+
+	.search-container {
+			display: flex;
+			gap: 8px;
+	}
+    .pagination-btn {
+        background-color: #007bff; /* Button background color */
+        color: #fff; /* Text color */
+        border: none; /* Remove border */
+        padding: 8px 16px; /* Reduced padding */
+        font-size: 14px; /* Reduced font size */
+        border-radius: 5px; /* Add rounded corners */
+        cursor: pointer; /* Change cursor to pointer on hover */
+    }
+
+    /* Styling for pagination buttons on hover */
+    .pagination-btn:hover {
+        background-color: #0056b3; /* Darker background color on hover */
+    }
+
+    /* Styling for pagination buttons on active/focus */
+    .pagination-btn:focus,
+    .pagination-btn:active {
+        outline: none; /* Remove default focus outline */
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Add box shadow on focus/active */
+    }
 </style>
 
 
 
 <div>
 	<p  class="heading">Showing Mozilla Org members</p>
-	<p>
-		Page <span class="page-info">1</span>
-	</p>
 </div>
 
-<input class="search" bind:value={searchVal} placeholder="search github ID" on:keyup={handleKeydown} />
-
-
+<div class="search-container">
+	<input class="search" bind:value={searchVal} placeholder="search github ID" on:keyup={handleKeydown} />
+	<button class="pagination-btn" on:click={handlePrevPage}>previous</button>
+	<p class="page-info">
+		Page {page}
+	</p>
+	<button class="pagination-btn" on:click={handleNextPage}>next</button>
+</div>
 
 <div class="container">
 	<canvas id="c" width="500" height="500" ></canvas>
