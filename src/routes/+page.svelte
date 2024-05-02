@@ -355,7 +355,7 @@
 <div id="sidebar-container">
 	<div class="shortcut">
 		<strong>export : </strong>
-		<p>alt+s</p>
+		<p>ctrl+s</p>
 	</div>
 	<h3>Images</h3>
 	<div class="shortcut" on:click={handleImageDownload}>
