@@ -133,7 +133,7 @@
 	}
 
 	function updateCanvasHeight(cardCount: number) {
-		const canvasHeight = cardCount * 120; // Update canvas height based on the number of cards
+		const canvasHeight = cardCount * 170; // Update canvas height based on the number of cards
 		canvas?.setHeight(canvasHeight);
 	}
 
