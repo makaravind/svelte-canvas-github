@@ -111,6 +111,19 @@
 		canvas?.setHeight(canvasHeight);
 	}
 
+	function makeCanvasInteractive() {
+		const onChange = (options: fType.IEvent) => {
+			console.log("aravind:", 'called')
+			options.target?.setCoords();
+			canvas?.forEachObject(function(obj) {
+				if (obj === options.target) return;
+				obj.set('opacity' ,options.target?.intersectsWithObject(obj) ? 0.5 : 1);
+			});
+		}
+
+		canvas?.on('object:moving', onChange)
+	}
+
 	onMount(() => {
 		canvas = new fabric.Canvas('c');
 		canvas.setHeight(0)
@@ -125,6 +138,7 @@
 			updateCanvasHeight(i + 1)
 			canvas?.add(group);
 		}
+		makeCanvasInteractive()
 	}
 
 	async function init() {
@@ -152,10 +166,24 @@
 			overflow-y: auto;
 			scrollbar-width: none;
 	}
+
+	.search {
+      padding: 10px; /* Add some padding for spacing */
+      border: 1px solid #ccc; /* Add a border */
+      border-radius: 5px; /* Add rounded corners */
+      font-size: 16px; /* Set font size */
+			margin-bottom: 10px;
+	}
+
+  .search:focus {
+      border-color: #007bff; /* Change border color when focused */
+      outline: none; /* Remove default focus outline */
+      box-shadow: 0 0 5px #007bff; /* Add a subtle box shadow when focused */
+  }
 </style>
 
 
-<input bind:value={searchVal} placeholder="search github id" on:keyup={handleKeydown} />
+<input class="search" bind:value={searchVal} placeholder="search github id" on:keyup={handleKeydown} />
 
 <div class="container">
 	<canvas id="c" width="500" height="500" ></canvas>
