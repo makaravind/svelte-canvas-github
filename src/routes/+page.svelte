@@ -23,8 +23,8 @@
 	let canvas: fType.Canvas | undefined;
 	let memberDetails : NameCard[]
 
-	async function getNameCardRect(card: NameCard) {
-		const avatarImg = await new Promise<fType.Image>((resolve) => {
+	async function getNameCardRect(card: NameCard, cardCount: number) {
+		const avatarImg = await new Promise<fType.Image>((resolve, reject) => {
 			fabric.Image.fromURL(card.avatar, (img) => {
 				img.scaleToWidth(60);
 				img.scaleToHeight(60);
@@ -67,15 +67,21 @@
 		});
 
 		let group = new fabric.Group([rect, avatarImg, nameText, usernameText, profileText], {
-			left: 100,
-			top: 100
+			left: 20, // Maintain a fixed horizontal margin
+			top: 120 * cardCount // Increase vertical position with each card
 		});
 
-		return group;
+		return group
+	}
+
+	function updateCanvasHeight(cardCount: number) {
+		const canvasHeight = cardCount * 120; // Update canvas height based on the number of cards
+		canvas?.setHeight(canvasHeight);
 	}
 
 	onMount(() => {
 		canvas = new fabric.Canvas('c');
+		canvas.setHeight(0)
 		init().then(() => console.log("aravind:", 'init'));
 	});
 
@@ -94,13 +100,23 @@
 		}))
 
 		for (let i = 0; i < memberDetails.length; i++) {
-			const member = memberDetails[i];
-			const group = await getNameCardRect(member);
+			const member = memberDetails[i]
+			const group = await getNameCardRect(member, i);
+			updateCanvasHeight(i)
 			canvas?.add(group);
 		}
 	}
 </script>
 
-<div class="MarkdownEditor">
-	<canvas id="c" width="500" height="500" style="border:1px solid #000000;"></canvas>
+<style>
+	.container {
+			width: 500px;
+			height: 500px;
+			overflow-y: auto;
+			scrollbar-width: none;
+	}
+</style>
+
+<div class="container">
+	<canvas id="c" width="500" height="500" ></canvas>
 </div>
